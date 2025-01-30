@@ -57,6 +57,8 @@ describe('AuthController', () => {
 
       (db.select as jest.Mock).mockResolvedValueOnce([{ id: 1, email: 'test@example.com', password: 'hashedPassword' }]);
 
+      (bcrypt.compare as jest.Mock).mockResolvedValueOnce(true);
+
       await authController.login(req, res);
 
       expect(bcrypt.compare).toHaveBeenCalledWith('password123', 'hashedPassword');

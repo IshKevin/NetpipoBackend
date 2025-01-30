@@ -30,6 +30,8 @@ describe('EmployeeController', () => {
         json: jest.fn(),
       } as unknown as Response;
 
+      (db.insert as jest.Mock).mockResolvedValueOnce({ id: 1, name: 'John Doe' });
+
       await employeeController.createEmployee(req, res);
 
       expect(db.insert).toHaveBeenCalledWith(expect.anything());
