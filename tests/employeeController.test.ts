@@ -1,8 +1,7 @@
 import { EmployeeController } from '../src/controllers/employee.controller';
-import { db } from '../src/config/database';
-import { employees } from '../src/schema/employee.schema';
+import { db } from '../src/config/database'; // Import the db mock
 
-jest.mock('../src/config/database');
+jest.mock('../src/config/database'); // Mock the db
 
 describe('EmployeeController', () => {
   let employeeController: EmployeeController;
@@ -32,16 +31,22 @@ describe('EmployeeController', () => {
       expect(res.status).toHaveBeenCalledWith(201);
       expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ name: 'John Doe' }));
     });
+
+    it('should return 500 if employee creation fails', async () => {
+      req.body = { name: 'John Doe', email: 'john.doe@example.com', position: 'Developer', salary: 50000 };
+      (db.insert as jest.Mock).mockRejectedValue(new Error('Database error'));
+
+      await employeeController.createEmployee(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({ message: 'Error creating employee', error: expect.anything() });
+    });
   });
 
   describe('getAllEmployees', () => {
     it('should fetch all employees', async () => {
       const allEmployees = [{ id: 1, name: 'John Doe' }];
-      (db.select as jest.Mock).mockReturnValue({
-        from: jest.fn().mockReturnValue({
-          then: jest.fn().mockResolvedValue(allEmployees),
-        }),
-      });
+      (db.select as jest.Mock).mockResolvedValue(allEmployees);
 
       await employeeController.getAllEmployees(req, res);
 
@@ -54,15 +59,7 @@ describe('EmployeeController', () => {
     it('should fetch an employee by ID', async () => {
       req.params.id = '1';
       const employee = [{ id: 1, name: 'John Doe' }];
-      (db.select as jest.Mock).mockReturnValue({
-        from: jest.fn().mockReturnValue({
-          where: jest.fn().mockReturnValue({
-            limit: jest.fn().mockReturnValue({
-              then: jest.fn().mockResolvedValue(employee),
-            }),
-          }),
-        }),
-      });
+      (db.select as jest.Mock).mockResolvedValue(employee);
 
       await employeeController.getEmployeeById(req, res);
 
@@ -72,15 +69,7 @@ describe('EmployeeController', () => {
 
     it('should return 404 if employee ID does not exist', async () => {
       req.params.id = '1';
-      (db.select as jest.Mock).mockReturnValue({
-        from: jest.fn().mockReturnValue({
-          where: jest.fn().mockReturnValue({
-            limit: jest.fn().mockReturnValue({
-              then: jest.fn().mockResolvedValue([]),
-            }),
-          }),
-        }),
-      });
+      (db.select as jest.Mock).mockResolvedValue([]);
 
       await employeeController.getEmployeeById(req, res);
 
