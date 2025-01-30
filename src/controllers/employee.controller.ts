@@ -1,16 +1,19 @@
+// src/controllers/employee.controller.ts
 import { Request, Response } from 'express';
 import { db } from '../config/database';
-import { employees } from '../schema/employee.schema';
+import { employees, Employee, NewEmployee } from '../schema/employee.schema';
 import { eq } from 'drizzle-orm';
+import { AuthRequest } from '../middleware/auth.middleware';
 
 export class EmployeeController {
   async createEmployee(req: Request, res: Response): Promise<void> {
     try {
-      const { name, email, position, salary } = req.body;
+      const { name, email, position, salary }: NewEmployee = req.body;
+      
       const newEmployee = await db.insert(employees)
         .values({ name, email, position, salary })
         .returning();
-
+      
       res.status(201).json(newEmployee[0]);
     } catch (error) {
       res.status(500).json({ message: 'Error creating employee', error });
@@ -48,7 +51,7 @@ export class EmployeeController {
   async updateEmployee(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const updateData = req.body;
+      const updateData: Partial<NewEmployee> = req.body;
 
       const updatedEmployee = await db.update(employees)
         .set({ ...updateData, updatedAt: new Date() })
