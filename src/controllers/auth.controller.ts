@@ -19,7 +19,7 @@ export class AuthController {
 
       res.status(201).json(newUser[0]);
     } catch (error) {
-      res.status(5).json({ message: 'Error creating account', error });
+      res.status(500).json({ message: 'Error creating account', error });
       console.error(error);
     }
   }
